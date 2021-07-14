@@ -8,5 +8,5 @@
 ## Исправление ошибки *"SSH CONNECTION REFUSED"*
 
 [wiki.merionet.ru](https://wiki.merionet.ru/servernye-resheniya/76/kak-ispravit-oshibku-ssh-connection-refused/)  
-[Установка службы SSH](https://unix.stackexchange.com/questions/520341/ssh-installed-but-i-get-the-error-failed-to-start-ssh-service-unit-ssh-service) `sudo apt-get install openssh-server
+[Установка службы SSH](https://unix.stackexchange.com/questions/520341/ssh-installed-but-i-get-the-error-failed-to-start-ssh-service-unit-ssh-service) `sudo apt install openssh-server
 `

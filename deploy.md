@@ -7,7 +7,7 @@
 
 ### Шаг 1 -  Вход в систему от root
 
-`ssh root@your_server_ip`
+`ssh root@[your_server_ip]`
 
 Пользователь **root** является администратором в среде Linux и имеет весьма широкие права. Ввиду расширенных прав учетной записи root не рекомендуется использовать ее на постоянной основе, поскольку некоторые права, предоставляемые учетной записи **root**, дают возможность вносить деструктивные изменения, в том числе случайно.
 
@@ -16,16 +16,17 @@
 
 `apt update`
 
-`adduser newuser` - создать нового пользователя
+`adduser [newuser]` - создать нового пользователя
 
 `newuser sudo` - наделить нового пользователями правами администратора (добавляется в группу sudo)
 
 
 ### Шаг 3 - Представление внешнего доступа для нового пользователя
 
-`ssh-copy-id newuser@your_server_ip` - при входе копируется публичный ssh-ключ на удаленный сервер, чтобы в дальнейшеи была возможность входить без пароля
+`ssh-copy-id [newuser]@[your_server_ip]` - при входе копируется публичный ssh-ключ на удаленный сервер, чтобы в дальнейшеи была возможность входить без пароля  
+*`ssh-copy-id -i ~/.ssh/id_rsa.pub [newuser]@[your_server_ip]` - если несколько ключей, можно так указать определенный.
 
-`ssh newuser@your_server_ip` - при следующем входе
+`ssh [newuser]@[your_server_ip]` - при следующем входе
 
 
 ### Шаг 4 - Настройка входа пользователей
@@ -56,7 +57,7 @@
 `tar -xzvf Python-3.9.5.tgz`
 
 `cd Python-3.9.5`  
-`./configure --enable-optimizations --prefix=/home/newuser/.python3.9/`
+`./configure --enable-optimizations --prefix=/home/[newuser]/.python3.9/`
 
 `make -j 2`  
 !!! 2 - количесвто ядер на сервере, при необходимости изменить
@@ -65,7 +66,7 @@
 
 `cd ~/.python3.9/bin`  
 `nano ~/.bashrc`  
-* export PATH=$PATH:/home/newuser/.python3.9/bin
+* export PATH=$PATH:/home/[newuser]/.python3.9/bin
 
 `source ~/.bashrc`
 
@@ -95,13 +96,13 @@
 
 `sudo apt install git`
 
-`git config --global user.name "Ivan Ivanov"`  
-`git config --global user.email "ivanov@mail.ru"`
+`git config --global user.name "[Ivan Ivanov]"`  
+`git config --global user.email "[ivanov@mail.ru]"`
 
 ### Загрузка приложения на сервер
 
-`mkdir myproject`  
-`cd myproject`
+`mkdir [myproject]`  
+`cd [myproject]`
 
 1. git clone по http
 2. git clone по ssh, но тогда необходимо сначала сгенерить ssh-ключ на сервере и занести его в удаленный репозиторий
@@ -115,19 +116,19 @@
 Создать файл **.env** с необходимыми переменными среды: SECRET_KEY и т.п.
 
 Нужно установить переменную среды `FLASK_APP` в точку входа приложения, чтобы команда `flask` работала, но эта переменная должна быть определена до анализа файла *.env*, поэтому её необходимо установить вручную. Чтобы избежать необходимости проделывать это каждый раз, лучше всего добавить её в нижнюю часть *~/.profile* для учетной записи ubuntu, так что она будет устанавливаться автоматически каждый раз при моем входе  
-`echo "export FLASK_APP=myproject.py" >> ~/.profile`
+`echo "export FLASK_APP=[myproject].py" >> ~/.profile`
 
 ### Настройка nginx
 
-`sudo nano /etc/nginx/sites-enabled/myconfigname.conf`  
+`sudo nano /etc/nginx/sites-enabled/[myconfigname].conf`  
 ! рекомендуется класть конфиг в sites-available и делать ссылку на него из sites-enabled. но для простоты можно использовать sites-enabled. myconfigname.conf = например, authdemo.ru.conf
 
 ```
 server {
-    server_name myproject.ru;
+    server_name [myproject.ru];
     location / {
         include proxy_params;
-        proxy_pass http://127.0.0.1:8000;  # <-- ip указан для примера
+        proxy_pass [http://127.0.0.1:8000];  # <-- ip указан для примера
     }
 }
 ```
