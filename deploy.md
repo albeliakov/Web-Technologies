@@ -86,7 +86,8 @@
 `sudo apt install -y ufw`  
 `sudo ufw allow ssh`  
 `sudo ufw allow http`  
-`sudo ufw allow 443/tcp`  
+`sudo ufw allow 443/tcp`
+`sudo ufw allow 5000`  
 `sudo ufw --force enable`  
 `sudo ufw status`  
 
@@ -110,7 +111,7 @@
 ### Настройка окружения
 
 `python3.9 -m venv env`  
-`. /env/bin/activate`  
+`. env/bin/activate`  
 `pip install -r requirements.txt`
 
 Создать файл **.env** с необходимыми переменными среды: SECRET_KEY и т.п.
@@ -118,7 +119,7 @@
 Нужно установить переменную среды `FLASK_APP` в точку входа приложения, чтобы команда `flask` работала, но эта переменная должна быть определена до анализа файла *.env*, поэтому её необходимо установить вручную. Чтобы избежать необходимости проделывать это каждый раз, лучше всего добавить её в нижнюю часть *~/.profile* для учетной записи ubuntu, так что она будет устанавливаться автоматически каждый раз при моем входе  
 `echo "export FLASK_APP=[myproject].py" >> ~/.profile`
 
-### Настройка nginx
+### Настройка nginx - проверка
 
 `sudo nano /etc/nginx/sites-enabled/[myconfigname].conf`  
 ! рекомендуется класть конфиг в sites-available и делать ссылку на него из sites-enabled. но для простоты можно использовать sites-enabled. myconfigname.conf = например, authdemo.ru.conf
@@ -138,3 +139,62 @@ server {
 ### Настройка gunicorn
 
 `pip install gunicorn`
+
+`gunicorn --bind 0.0.0.0:5000 -w 4 [myproject_run]:app`
+
+Опция `-b` сообщает *gunicorn*, что установлен порт 5000 внутреннего сетевого интерфейса для прослушки запросов. Обычно рекомендуется запускать веб-приложения Python без внешнего доступа, а затем иметь очень быстрый веб-сервер, оптимизированный для обслуживания статических файлов, принимающих все запросы от клиентов. Этот быстрый веб-сервер будет обслуживать статические файлы напрямую и перенаправлять любые запросы, предназначенные для приложения, на внутренний сервер. Я покажу вам, как настроить *nginx* в качестве публичного сервера в следующем разделе.
+
+
+Параметр `-w` определяет, сколько рабочих процессов будет работать с *gunicorn*. Наличие четырех процессов позволяет приложению обрабатывать до четырех клиентов одновременно, что для веб-приложения обычно достаточно для обработки приличного количества клиентов, так как не все из них постоянно запрашивают контент. В зависимости от объема ОЗУ, имеющегося на сервере, может потребоваться настроить количество процессов, чтобы не исчерпать память.
+
+
+Аргумент `[myproject_run]:app` сообщает *gunicorn*, как загрузить экземпляр приложения. Имя перед двоеточием - это модуль, содержащий приложение. А имя после двоеточия - это имя этого приложения.
+
+Необходимо, чтобы gunicorn работал в фоновом режиме и находился под постоянным контролем, потому что если по какой-либо причине сервер падает и выходит, хотелось бы убедиться, что новый сервер автоматически запустится, чтобы занять его место. Кроме того, при перезагрузке компьютера, сервер должен запускаться автоматически, без необходимости входить в систему и запускать все самостоятельно. Для этого создается файл служебных элементов **systemd**:  
+`sudo nano /etc/systemd/system/[myproject].service`
+```
+[Unit]
+Description=Gunicorn instance to serve [myproject]
+After=network.target
+
+[Service]
+User=[newuser]
+Group=www-data
+WorkingDirectory=/home/[newuser]/[myproject]
+Environment="PATH=/home/[newuser]/[myproject]/[env]/bin"
+ExecStart=/home/[newuser]/[myproject]/[env]/bin/gunicorn --workers 4 --bind unix:[myproject].sock -m 007 [myproject_run]:app
+
+[Install]
+WantedBy=multi-user.target
+```
+
+`sudo systemctl start [myproject]` - создать службу gunicorn  
+`sudo systemctl enable [myproject]` - активировать её
+
+`sudo systemctl status [myproject]` - проверить состояние
+
+### Настройка nginx - продакшен
+
+`sudo rm /etc/nginx/sites-enabled/[myconfigname].conf`
+
+`sudo nano /etc/nginx/sites-available/[myconfigname]`
+```
+server {
+    listen 80;
+    server_name your_domain www.your_domain;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/[newuser]/[myproject]/[myproject].sock;
+    }
+}
+```
+
+`sudo ln -s /etc/nginx/sites-available/[myconfigname] /etc/nginx/sites-enabled`
+
+`sudo nginx -s reload`
+
+`sudo ufw delete allow 5000`
+`sudo ufw allow 'Nginx Full'`
+
+### Защита приложения
