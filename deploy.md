@@ -173,6 +173,9 @@ WantedBy=multi-user.target
 
 `sudo systemctl status [myproject]` - проверить состояние
 
+`sudo apt install -y htop`  
+`htop`
+
 ### Настройка nginx - продакшен
 
 `sudo rm /etc/nginx/sites-enabled/[myconfigname].conf`
@@ -194,7 +197,15 @@ server {
 
 `sudo nginx -s reload`
 
-`sudo ufw delete allow 5000`
+`sudo ufw delete allow 5000`  
 `sudo ufw allow 'Nginx Full'`
 
 ### Защита приложения
+[Шаг 6](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04-ru)
+
+
+## Иcпользование Docker
+
+[Пример](https://www.digitalocean.com/community/tutorials/how-to-build-and-deploy-a-flask-application-using-docker-on-ubuntu-18-04-ru)
+
+[Мега-Учебник](https://habr.com/ru/post/353234/)
