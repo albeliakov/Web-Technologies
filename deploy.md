@@ -168,6 +168,11 @@ ExecStart=/home/[newuser]/[myproject]/[env]/bin/gunicorn --workers 4 --bind unix
 WantedBy=multi-user.target
 ```
 
+**ExecStart** - запуск службы:
+* `--workers 4` - запустить 4 процесса. устанавливается по формуле (2 * кол-во ядерCPU) + 1
+* Создание и привязвка к файлу сокетов Unix `myproject.sock` в каталоге нашего проекта. Мы зададим значение umask `-m 007`, чтобы при создании файла сокета предоставлялся доступ для владельца и для группы, а любой другой доступ ограничивался
+* `[myproject_run]:app` - указывается точка входа WSGI и вызваемое Python-приложение
+
 `sudo systemctl start [myproject]` - создать службу gunicorn  
 `sudo systemctl enable [myproject]` - активировать её
 
